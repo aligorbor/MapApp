@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">MapApp</string>
+    <string name="back4app_server_url">https://parseapi.back4app.com/</string>
+    <string name="back4app_app_id">DyvQhXIpji0ISZvi6S1lkEukNBWfC0ToMDMSqcWt</string>
+    <string name="back4app_client_key">2n6DEc2KR8dZv6sFEPkK5r6NpTyOeDh8yoS42T8m</string>
+    <string name="enter_query">Введите запрос</string>
+    <string name="search">Search</string>
+    <string name="markers">Маркеры</string>
+    <string name="looks_like_location_disabled">Похоже, местоположение недоступно. Проверьте настройки вашего телефона</string>
+    <string name="markers_list">Markers List</string>
+    <string name="save_marker">Save Marker</string>
+    <string name="cancel">Cancel</string>
+    <string name="latitude_longtitude">Latitude,Longtitude</string>
+    <string name="description">Description</string>
+    <string name="reload">Reload list of markers?</string>
+    <string name="list_is_empty">List is empty</string>
+    <string name="car_move">Car move</string>
+    <string name="progress">0 / 0</string>
+
 </resources>
