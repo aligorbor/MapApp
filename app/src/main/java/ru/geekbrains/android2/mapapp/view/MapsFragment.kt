@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
@@ -25,11 +26,10 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import ru.geekbrains.android2.mapapp.R
 import ru.geekbrains.android2.mapapp.databinding.FragmentMapsContentBinding
-import ru.geekbrains.android2.mapapp.model.MarkerObj
+import ru.geekbrains.android2.mapapp.model.DB.MarkerObj
 import ru.geekbrains.android2.mapapp.utils.showSnackBar
 import ru.geekbrains.android2.mapapp.viewmodel.AppStateMaps
 import ru.geekbrains.android2.mapapp.viewmodel.MapsViewModel
@@ -39,10 +39,13 @@ class MapsFragment : Fragment() {
     private val locationPermissionReqCode = 2277
     private lateinit var map: GoogleMap
     private lateinit var viewModel: MapsViewModel
+    private lateinit var rad: RouteAnimateAdapter
     private var _binding: FragmentMapsContentBinding? = null
     private val binding get() = _binding!!
     var progressDialog: ProgressDialog? = null
     private var moveCameraAfterLocationChanged: Boolean = true
+    private var latLngFrom: LatLng? = null
+    private var latLngTo: LatLng? = null
     private val onLocationListener = object : LocationListener {
         override fun onLocationChanged(locationChanged: Location) {
             if (moveCameraAfterLocationChanged)
@@ -70,6 +73,9 @@ class MapsFragment : Fragment() {
         map.setOnMapClickListener {
             getAddressAsync(it)
         }
+        map.setOnMapLongClickListener {
+            getAddressAsync(locationAsync = it, saveToDB = false, route = true)
+        }
 
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
@@ -87,6 +93,57 @@ class MapsFragment : Fragment() {
                 getAddressAsync(LatLng(lat, long), false)
             }
         }
+        rad = RouteAnimateAdapter(requireContext())
+        rad.setOnAnimateListener(object : RouteAnimateAdapter.OnAnimateListener {
+            override fun onFinish() {
+                binding.textProgress.visibility = View.GONE
+                latLngFrom = null
+                latLngTo = null
+            }
+
+            override fun onStart() {
+                binding.textProgress.visibility = View.VISIBLE
+            }
+
+            override fun onProgress(progress: Int, total: Int) {
+                binding.textProgress.text = "$progress / $total"
+            }
+        })
+    }
+
+    private fun showCar(polyPoints: List<LatLng>) {
+        var mo = MarkerOptions()
+        mo.icon(BitmapDescriptorFactory.fromResource(R.drawable.car3r1))
+        rad.animateDirection(
+            map, ArrayList(polyPoints), 2, true,
+            false, true, true, mo, true, true, null
+        )
+    }
+
+    private fun showRoute(polyPoints: List<LatLng>) {
+        // declare bounds object to fit whole route in screen
+        val LatLongB = LatLngBounds.Builder()
+        // Declare polyline object and set up color and width
+        val options = PolylineOptions()
+        options.color(Color.RED)
+        options.width(5f)
+        // Add  points to polyline and bounds
+        options.add(latLngFrom)
+        LatLongB.include(latLngFrom!!)
+        for (point in polyPoints) {
+            options.add(point)
+            LatLongB.include(point)
+        }
+        options.add(latLngTo)
+        LatLongB.include(latLngTo!!)
+        // build bounds
+        val bounds = LatLongB.build()
+        ///    add polyline to the map
+        map.addPolyline(options)
+        // show map with route centered
+        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+        latLngFrom = null
+        latLngTo = null
     }
 
     override fun onCreateView(
@@ -101,9 +158,9 @@ class MapsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this).get(MapsViewModel::class.java).apply {
-            getLiveData().observe(viewLifecycleOwner, {
+            getLiveData().observe(viewLifecycleOwner) {
                 renderData(it)
-            })
+            }
         }
         progressDialog = ProgressDialog(requireContext())
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
@@ -112,8 +169,16 @@ class MapsFragment : Fragment() {
 
     private fun renderData(appState: AppStateMaps) {
         when (appState) {
-            is AppStateMaps.Success -> {
+            is AppStateMaps.SuccessMarker -> {
                 progressDialog?.dismiss()
+            }
+            is AppStateMaps.SuccessDirection -> {
+                progressDialog?.dismiss()
+                if (MainActivity.showCar) {
+                    showCar(appState.polyPoints)
+                } else {
+                    showRoute(appState.polyPoints)
+                }
             }
             is AppStateMaps.Loading -> {
                 progressDialog?.show()
@@ -177,7 +242,11 @@ class MapsFragment : Fragment() {
         }
     }
 
-    private fun getAddressAsync(locationAsync: LatLng, saveToDB: Boolean = true) {
+    private fun getAddressAsync(
+        locationAsync: LatLng,
+        saveToDB: Boolean = true,
+        route: Boolean = false
+    ) {
         context?.let {
             val geoCoder = Geocoder(it)
             Thread {
@@ -185,7 +254,8 @@ class MapsFragment : Fragment() {
                     val address =
                         geoCoder.getFromLocation(locationAsync.latitude, locationAsync.longitude, 1)
                     Handler(Looper.getMainLooper()).post {
-                        setMarker(locationAsync, address[0].getAddressLine(0), saveToDB)
+                        if (route) setRouteMarker(locationAsync, address[0].getAddressLine(0))
+                        else setMarker(locationAsync, address[0].getAddressLine(0), saveToDB)
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -208,6 +278,26 @@ class MapsFragment : Fragment() {
             viewModel.saveMarker(marker)
         }
     }
+
+    private fun setRouteMarker(latLng: LatLng, title: String) {
+        if (latLngFrom == null && latLngTo == null) {
+            map.clear()
+            latLngFrom = latLng
+            //  map.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngFrom!!, 15f))
+            map.addMarker(MarkerOptions().position(latLngFrom!!).title(title))
+        } else if (latLngFrom != null && latLngTo == null) {
+            latLngTo = latLng
+            map.addMarker(MarkerOptions().position(latLngTo!!).title(title))
+            viewModel.getDirection(latLngFrom!!, latLngTo!!, getString(R.string.google_maps_key))
+        } else if (latLngFrom != null && latLngTo != null) {
+            rad.cancelAnimated()
+            latLngFrom = null
+            latLngTo = null
+            map.clear()
+        }
+    }
+
 
     private fun showAlert(title: String, message: String) {
         val builder = AlertDialog.Builder(requireContext())

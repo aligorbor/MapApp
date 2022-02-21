@@ -5,5 +5,15 @@
         android:id="@+id/menu_markers"
         android:title="@string/markers"
         android:icon="@drawable/ic_settings"
+        android:orderInCategory="10"
         app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/menu_car"
+        app:actionViewClass="android.widget.CheckBox"
+        android:checkable="true"
+        android:checked="true"
+        android:icon="@android:drawable/ic_menu_directions"
+        android:orderInCategory="20"
+        android:title="@string/car_move"
+        app:showAsAction="never" />
 </menu>

@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ru.geekbrains.android2.mapapp.R
 import ru.geekbrains.android2.mapapp.databinding.CustomAlertDialogBinding
 import ru.geekbrains.android2.mapapp.databinding.FragmentMarkersBinding
-import ru.geekbrains.android2.mapapp.model.MarkerObj
+import ru.geekbrains.android2.mapapp.model.DB.MarkerObj
 import ru.geekbrains.android2.mapapp.utils.showSnackBar
 import ru.geekbrains.android2.mapapp.viewmodel.AppStateMarkers
 import ru.geekbrains.android2.mapapp.viewmodel.MarkersViewModel
@@ -54,9 +54,9 @@ class MarkersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this).get(MarkersViewModel::class.java).apply {
-            getLiveData().observe(viewLifecycleOwner, {
+            getLiveData().observe(viewLifecycleOwner) {
                 renderData(it)
-            })
+            }
             getListOfMarkers()
         }
         progressDialog = ProgressDialog(requireContext())
@@ -125,11 +125,11 @@ class MarkersFragment : Fragment() {
             onItemViewClickListener
         )
 
-        adapter.onDeleteListener.observe(viewLifecycleOwner, { markerObj ->
+        adapter.onDeleteListener.observe(viewLifecycleOwner) { markerObj ->
             viewModel.deleteMarker(markerObj)
-        })
+        }
 
-        adapter.clickListenerToEdit.observe(viewLifecycleOwner, { markerObj ->
+        adapter.clickListenerToEdit.observe(viewLifecycleOwner) { markerObj ->
             val alertDialogBuilder = AlertDialog.Builder(requireContext())
             alertDialogBuilder.setTitle("Update a Marker")
             alertDialogBuilder.setCancelable(true)
@@ -161,7 +161,7 @@ class MarkersFragment : Fragment() {
             cancelUserDataButton?.setOnClickListener { cancelButtonView ->
                 alertDialog.cancel()
             }
-        })
+        }
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.setHasFixedSize(false)

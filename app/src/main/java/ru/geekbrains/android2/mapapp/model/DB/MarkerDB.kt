@@ -1,4 +1,4 @@
-package ru.geekbrains.android2.mapapp.model
+package ru.geekbrains.android2.mapapp.model.DB
 
 interface MarkerDB {
     suspend fun insMarker(marker: MarkerObj): String?

@@ -34,6 +34,11 @@ class MainActivity : AppCompatActivity() {
                 openFragment(MarkersFragment.newInstance())
                 true
             }
+            R.id.menu_car -> {
+                item.isChecked = !item.isChecked
+                showCar = item.isChecked
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -47,4 +52,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    companion object {
+        var showCar = true
+    }
 }

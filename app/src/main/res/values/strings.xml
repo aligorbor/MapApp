@@ -14,5 +14,7 @@
     <string name="description">Description</string>
     <string name="reload">Reload list of markers?</string>
     <string name="list_is_empty">List is empty</string>
+    <string name="car_move">Car move</string>
+    <string name="progress">0 / 0</string>
 
 </resources>

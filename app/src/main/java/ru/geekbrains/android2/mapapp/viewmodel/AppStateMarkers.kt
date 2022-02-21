@@ -1,6 +1,6 @@
 package ru.geekbrains.android2.mapapp.viewmodel
 
-import ru.geekbrains.android2.mapapp.model.MarkerObj
+import ru.geekbrains.android2.mapapp.model.DB.MarkerObj
 
 sealed class AppStateMarkers {
     data class Success(val markers: List<MarkerObj>) : AppStateMarkers()

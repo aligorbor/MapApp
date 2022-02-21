@@ -1,4 +1,4 @@
-package ru.geekbrains.android2.mapapp.model
+package ru.geekbrains.android2.mapapp.model.DB
 
 import com.parse.ParseObject
 import com.parse.ParseQuery

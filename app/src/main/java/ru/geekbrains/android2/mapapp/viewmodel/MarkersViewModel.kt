@@ -6,9 +6,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import ru.geekbrains.android2.mapapp.model.MarkerDB
-import ru.geekbrains.android2.mapapp.model.MarkerDBImpl
-import ru.geekbrains.android2.mapapp.model.MarkerObj
+import ru.geekbrains.android2.mapapp.model.DB.MarkerDB
+import ru.geekbrains.android2.mapapp.model.DB.MarkerDBImpl
+import ru.geekbrains.android2.mapapp.model.DB.MarkerObj
 
 class MarkersViewModel(
     private val liveDataToObserve: MutableLiveData<AppStateMarkers> = MutableLiveData(),

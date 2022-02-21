@@ -1,4 +1,4 @@
-package ru.geekbrains.android2.mapapp.model
+package ru.geekbrains.android2.mapapp.model.DB
 
 data class MarkerObj(
     var title: String = "",

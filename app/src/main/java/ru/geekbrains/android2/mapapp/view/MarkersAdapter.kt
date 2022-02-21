@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import ru.geekbrains.android2.mapapp.R
-import ru.geekbrains.android2.mapapp.model.MarkerObj
+import ru.geekbrains.android2.mapapp.model.DB.MarkerObj
 
 class MarkersAdapter(
     private val list: ArrayList<MarkerObj>,
